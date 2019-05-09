@@ -1168,25 +1168,25 @@ RedBlack.prototype.treeDelete = function(tree, valueToDelete)
 			}
 			else // tree.left != null && tree.right != null
 			{
-				this.cmd("SetText", 0, "Node to delete has two childern.  \nFind largest node in left subtree.");									
+				this.cmd("SetText", 0, "Node to delete has two childern.  \nFind smallest node in right subtree.");									
 				
 				this.highlightID = this.nextIndex;
 				this.nextIndex += 1;
 				this.cmd("CreateHighlightCircle", this.highlightID, HIGHLIGHT_COLOR, tree.x, tree.y);
 				var tmp = tree;
-				tmp = tree.left;
+				tmp = tree.right;
 				this.cmd("Move", this.highlightID, tmp.x, tmp.y);
 				this.cmd("Step");																									
-				while (tmp.right != null && !tmp.right.phantomLeaf)
+				while (tmp.left != null && !tmp.left.phantomLeaf)
 				{
-					tmp = tmp.right;
+					tmp = tmp.left;
 					this.cmd("Move", this.highlightID, tmp.x, tmp.y);
 					this.cmd("Step");																									
 				}
-				if (tmp.right != null)
+				if (tmp.left != null)
 				{
-					this.cmd("Delete", tmp.right.graphicID);
-					tmp.right = null;
+					this.cmd("Delete", tmp.left.graphicID);
+					tmp.left = null;
 				}
 				this.cmd("SetText", tree.graphicID, " ");
 				var labelID = this.nextIndex;
@@ -1195,7 +1195,7 @@ RedBlack.prototype.treeDelete = function(tree, valueToDelete)
 				this.cmd("SetForegroundColor", labelID, BLUE);
 				tree.data = tmp.data;
 				this.cmd("Move", labelID, tree.x, tree.y);
-				this.cmd("SetText", 0, "Copy largest value of left subtree into node to delete.");									
+				this.cmd("SetText", 0, "Copy smallest value of right subtree into node to delete.");									
 				
 				this.cmd("Step");
 				this.cmd("SetHighlight", tree.graphicID, 0);
@@ -1207,26 +1207,12 @@ RedBlack.prototype.treeDelete = function(tree, valueToDelete)
 				needFix = tmp.blackLevel > 0;
 				
 				
-				if (tmp.left == null)
+				if (tmp.right == null)
 				{
 					this.cmd("Delete", tmp.graphicID);
 					if (tmp.parent != tree)
 					{
-						tmp.parent.right = null;
-						this.resizeTree();
-						if (needFix)
-						{
-							this.fixRightNull(tmp.parent);
-						}
-						else
-						{
-							this.cmd("SetText", 0, "Deleted node was red.  No tree rotations required.");									
-							this.cmd("Step");									
-						}
-					}
-					else
-					{
-						tree.left = null;
+						tmp.parent.left = null;
 						this.resizeTree();
 						if (needFix)
 						{
@@ -1238,34 +1224,48 @@ RedBlack.prototype.treeDelete = function(tree, valueToDelete)
 							this.cmd("Step");									
 						}
 					}
+					else
+					{
+						tree.right = null;
+						this.resizeTree();
+						if (needFix)
+						{
+							this.fixRightNull(tmp.parent);
+						}
+						else
+						{
+							this.cmd("SetText", 0, "Deleted node was red.  No tree rotations required.");									
+							this.cmd("Step");									
+						}
+					}
 				}
 				else
 				{
 					this.cmd("Disconnect", tmp.parent.graphicID, tmp.graphicID);
-					this.cmd("Connect", tmp.parent.graphicID, tmp.left.graphicID, LINK_COLOR);
+					this.cmd("Connect", tmp.parent.graphicID, tmp.right.graphicID, LINK_COLOR);
 					this.cmd("Step");
 					this.cmd("Delete", tmp.graphicID);
 					
 					if (tmp.parent != tree)
 					{
-						tmp.parent.right = tmp.left; 
-						tmp.left.parent = tmp.parent;
+						tmp.parent.left = tmp.right; 
+						tmp.right.parent = tmp.parent;
 						this.resizeTree();
 						
 						if (needFix)
 						{
 							this.cmd("SetText", 0, "Coloring child of deleted node black");
 							this.cmd("Step");
-							tmp.left.blackLevel++;
-							if (tmp.left.phantomLeaf)
+							tmp.right.blackLevel++;
+							if (tmp.right.phantomLeaf)
 							{
-								this.cmd("SetLayer", tmp.left.graphicID, 0);
+								this.cmd("SetLayer", tmp.right.graphicID, 0);
 							}
-							this.fixNodeColor(tmp.left);
-							this.fixExtraBlack(tmp.left);
-							if (tmp.left.phantomLeaf)
+							this.fixNodeColor(tmp.right);
+							this.fixExtraBlack(tmp.right);
+							if (tmp.right.phantomLeaf)
 							{
-								this.cmd("SetLayer", tmp.left.graphicID, 1);
+								this.cmd("SetLayer", tmp.right.graphicID, 1);
 							}
 							
 						}
@@ -1277,24 +1277,24 @@ RedBlack.prototype.treeDelete = function(tree, valueToDelete)
 					}
 					else
 					{
-						tree.left = tmp.left;
-						tmp.left.parent = tree;
+						tree.right = tmp.right;
+						tmp.right.parent = tree;
 						this.resizeTree();
 						if (needFix)
 						{
 							this.cmd("SetText", 0, "Coloring child of deleted node black");
 							this.cmd("Step");
-							tmp.left.blackLevel++;
-							if (tmp.left.phantomLeaf)
+							tmp.right.blackLevel++;
+							if (tmp.right.phantomLeaf)
 							{
-								this.cmd("SetLayer", tmp.left.graphicID, 0);
+								this.cmd("SetLayer", tmp.right.graphicID, 0);
 							}
 							
-							this.fixNodeColor(tmp.left);
-							this.fixExtraBlack(tmp.left);
-							if (tmp.left.phantomLeaf)
+							this.fixNodeColor(tmp.right);
+							this.fixExtraBlack(tmp.right);
+							if (tmp.right.phantomLeaf)
 							{
-								this.cmd("SetLayer", tmp.left.graphicID, 1);
+								this.cmd("SetLayer", tmp.right.graphicID, 1);
 							}
 							
 						}
